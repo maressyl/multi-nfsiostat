@@ -1,0 +1,3 @@
+MAILTO=""
+* * * * * <DIRECTORY>/nfsiostat-collect.bash <DIRECTORY>
+* * * * * <DIRECTORY>/nfsiostat-push.bash <PORT> <DIRECTORY>
