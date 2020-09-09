@@ -1,0 +1,4 @@
+nfsiostat_*.txt
+nfsiostat_*.send
+plot/*.png
+pull/*.txt
