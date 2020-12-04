@@ -4,7 +4,7 @@
 ### Meant to be called by a cron every minute (* * * * * nfsiostat-push.bash <PORT> <DIRECTORY>)
 
 port="$1"
-storage="$1"
+storage="$2"
 
 for round in 1 2
 do

@@ -23,33 +23,35 @@ for(inputFile in inputFiles) {
 	
 	# Parse nfsiostat output
 	content <- scan(inputFile, what="", sep="\n", quiet=TRUE)
-  
-  # Consider only full frames
-  frameStarts <- grep("^20[0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\+[0-9]{2}:00$", content, perl=TRUE)
-  validFrame <- grepl("^read:", content[frameStarts + 4L]) & grepl("%\\)", content[frameStarts + 5L]) & grepl("^write:", content[frameStarts + 6L]) & grepl("%\\)", content[frameStarts + 7L])
-  frameStarts <- frameStarts[validFrame]
-  
-  # Measures
-	read  <- do.call(rbind, strsplit(content[ frameStarts + 5L ], split=" {2,}"))[,-1]
-	write <- do.call(rbind, strsplit(content[ frameStarts + 7L ], split=" {2,}"))[,-1]
-	time <- strptime(content[ frameStarts ], format="%Y-%m-%dT%H:%M:%S")
-  
-	# Headers
-	colnames(read) <- sprintf("read - %s", strsplit(content[ frameStarts[1] + 4L ], split=" {2,}")[[1]][-1])
-	colnames(write) <- sprintf("write - %s", strsplit(content[ frameStarts[1] + 6L ], split=" {2,}")[[1]][-1])
 	
-	# Aggregate
-	tab <- rbind(
-		tab,
-		data.frame(
-			server = server,
-			time = time,
-			read,
-			write,
-			check.names = FALSE,
-			stringsAsFactors=FALSE
+	# Consider only full frames
+	frameStarts <- grep("^20[0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\+[0-9]{2}:00$", content, perl=TRUE)
+	validFrame <- grepl("^read:", content[frameStarts + 4L]) & grepl("%\\)", content[frameStarts + 5L]) & grepl("^write:", content[frameStarts + 6L]) & grepl("%\\)", content[frameStarts + 7L])
+	frameStarts <- frameStarts[validFrame]
+	
+	if(length(frameStarts) > 0L) {
+		# Measures
+		read  <- do.call(rbind, strsplit(content[ frameStarts + 5L ], split=" {2,}"))[,-1]
+		write <- do.call(rbind, strsplit(content[ frameStarts + 7L ], split=" {2,}"))[,-1]
+		time <- strptime(content[ frameStarts ], format="%Y-%m-%dT%H:%M:%S")
+		
+		# Headers
+		colnames(read) <- sprintf("read - %s", strsplit(content[ frameStarts[1] + 4L ], split=" {2,}")[[1]][-1])
+		colnames(write) <- sprintf("write - %s", strsplit(content[ frameStarts[1] + 6L ], split=" {2,}")[[1]][-1])
+		
+		# Aggregate
+		tab <- rbind(
+			tab,
+			data.frame(
+				server = server,
+				time = time,
+				read,
+				write,
+				check.names = FALSE,
+				stringsAsFactors=FALSE
+			)
 		)
-	)
+	}
 }
 
 # Round times to avoid second shifts
@@ -64,14 +66,15 @@ arr <- array(
 	dimnames = list(NULL, names(hosts), columns)
 )
 
-# Store
+# Store FIXME
 for(column in columns) {
 	i <- cbind(
 		match(as.character(tab$time), as.character(times)),
 		match(tab$server, names(hosts)),
 		match(column, columns)
 	)
-	arr[i] <- as.double(tab[[column]])
+	f <- !apply(is.na(i), 1, any)
+	arr[ i[f,] ] <- as.double(tab[f,column])
 }
 
 
@@ -89,7 +92,7 @@ layout(matrix(c(1:4,5,5,5,5), ncol=2), widths=c(7,1))
 for(column in columns) {
 	# Matrix to plot
 	mtx <- as.matrix(t(arr[,,column]))
-  mtx[ is.na(mtx) ] <- 0L
+	mtx[ is.na(mtx) ] <- 0L
 	rownames(mtx) <- hosts[ rownames(mtx) ]
 	
 	# Time "axis" (hours)
