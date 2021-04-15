@@ -4,12 +4,12 @@
 args <- commandArgs(TRUE)
 if(length(args) == 1L) {
 	inputFile <- args[1]
-	outputFile <- sub("\\.txt$", ".png", inputFile)
+	outputFile <- sprintf("plots/%s", sub("\\.txt$", ".png", basename(inputFile)))
 } else if(length(args) == 2L) {
 	inputFile <- args[1]
 	outputFile <- args[2]
 } else {
-	stop("USAGE : ./nfsiostat.R nfsiostat_DATE.txt [ output.png ]")
+	stop("USAGE : ./nfsiostat.R store/DATE_HOST.txt [ output.png ]")
 }
 
 

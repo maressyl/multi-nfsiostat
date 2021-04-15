@@ -2,29 +2,57 @@
 
 ## Description
 
-### Slave servers
+Each "slave" server runs `nfsiostat` for 10 seconds every minute and send the result to a single "master" server through SSH, in order to plot summaries of NFS performances.
 
-Two cron tasks run each minute on each slave server :
+## Setup the master
 
-* `./nfsiostat-collect.bash` runs `nfsiostat` during 30 seconds and prints the result in both a `.send` file and a daily aggregate stored locally.
-* `./nfsiostat-push.bash` exposes on the requested TCP port all local `.send` files (one by one, until all are sent or until the first timeout). The script is blocked during the exposition until the master server queries the slave, or until time runs out (30 seconds). Once the `.send` file collected by the master, it is removed from the slave server.
+1. Pull the repository in the desired location.
+2. Edit the `dir_master=` line in `nfsiostat-collect.bash` to define your own location for the metrics store.
+3. Check the setup via direct execution (the file should appear in the store)
 
-### Master server
+```bash
+./nfsiostat-collect.bash
+```
+4. Setup a `cron` job using `crontab -e`
 
-Aside the two server cron tasks, one extra task running each minute :
+```
+MAILTO=""
+* * * * * ./nfsiostat-collect.bash
+```
 
-* `./nfsiostat-pull.bash` queries one by one all slave servers (one per second at most), in two nested loops. If the queried slave server is proposing a `.send` file, it is downloaded and appended to the daily aggregate of the corresponding server in the "pull" directory.
+## Setup a slave
 
-## Manual operations
+1. Define the hostname of the master server in `$master`
 
-### Force the collection
+2. Generate a SSH key (you will be prompted if one already exists)
 
-`.send` files can accumulate on slave servers in case of network problems. `./nfsiostat-magnet.bash` will try to collect all pending files in all slave server (infinite loop to kill manually).
+```bash
+ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+```
 
-### Plot data
+3. Register the SSH key on the master server
 
-Two R scripts for data representation are available in "plot". They are expected to be run from the terminal in the "plot" directory, they collect data files in "../pull".
+```bash
+ssh-copy-id $master
+```
 
-Without argument, they plot the data corresponding to the current day. A date can be passed with the YYYY-MM-DD format to plot a specific day.
+4. Pull the `nfsiostat-collect.bash` script from the master server
+5. Check the setup via direct execution (the file should appear in the store)
 
-`plot/nfsiostat-plotAll.bash` will plot both heatmaps and barplots for all days with available data, skipping days which were already plotted.
+```bash
+./nfsiostat-collect.bash $master
+```
+
+6. Setup a `cron` job using `crontab -e` (replace `$master` by its real content)
+
+```
+MAILTO=""
+* * * * * ./nfsiostat-collect.bash $master
+```
+
+## Plots
+
+`./nfsiostat-barplot.R [ DATE ]` will produce a barplot summarizing the metrics over all servers for the corresponding day (today if not specified).
+`./nfsiostat-heatmap.R [ DATE ]` will produce a heatmap summarizing the metrics over all servers for the corresponding day (today if not specified).
+`./nfsiostat-plot.R store/DATE_HOST.txt [ output.png ]`  will produce a barplot summarizing the metrics for a single day and server (file specified).
+

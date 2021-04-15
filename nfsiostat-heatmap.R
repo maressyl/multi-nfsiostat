@@ -2,55 +2,10 @@
 
 ### USAGE : ./nfsiostat-heatmap.R [ DATE ]
 
-# CLI arguments
-args <- commandArgs(TRUE)
-if(length(args) == 1L) {
-	day <- args[1]
-} else {
-	day <- strftime(Sys.time(), "%Y-%m-%d")
-}
-
-tmp <- read.csv("../hosts.csv", stringsAsFactors=FALSE)
-hosts <- tmp[[2]]
-names(hosts) <- tmp[[1]]
-
-tab <- NULL
-inputFiles <- dir("../pull", pattern=sprintf("%s_.*\\.txt$", day), full.names=TRUE)
-for(inputFile in inputFiles) {
-	# Server IP
-	server <- sub("^.+_([0-9\\.]+)\\.txt$", "\\1", basename(inputFile))
-	message(inputFile)
-	
-	# Parse nfsiostat output
-	content <- scan(inputFile, what="", sep="\n", quiet=TRUE)
-  
-  # Consider only full frames
-  frameStarts <- grep("^20[0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\+[0-9]{2}:00$", content, perl=TRUE)
-  validFrame <- grepl("^read:", content[frameStarts + 4L]) & grepl("%\\)", content[frameStarts + 5L]) & grepl("^write:", content[frameStarts + 6L]) & grepl("%\\)", content[frameStarts + 7L])
-  frameStarts <- frameStarts[validFrame]
-  
-  # Measures
-	read  <- do.call(rbind, strsplit(content[ frameStarts + 5L ], split=" {2,}"))[,-1]
-	write <- do.call(rbind, strsplit(content[ frameStarts + 7L ], split=" {2,}"))[,-1]
-	time <- strptime(content[ frameStarts ], format="%Y-%m-%dT%H:%M:%S")
-  
-	# Headers
-	colnames(read) <- sprintf("read - %s", strsplit(content[ frameStarts[1] + 4L ], split=" {2,}")[[1]][-1])
-	colnames(write) <- sprintf("write - %s", strsplit(content[ frameStarts[1] + 6L ], split=" {2,}")[[1]][-1])
-	
-	# Aggregate
-	tab <- rbind(
-		tab,
-		data.frame(
-			server = server,
-			time = time,
-			read,
-			write,
-			check.names = FALSE,
-			stringsAsFactors=FALSE
-		)
-	)
-}
+source("fun/collect.R")
+out <- collect()
+tab <- out$tab
+day <- out$day
 
 # Time range
 xlim <- range(tab$time)
@@ -83,7 +38,7 @@ for(colGroup in colGroups) {
 # Server IP as factor
 tab$server <- factor(tab$server)
 
-png(sprintf("nfsiostat-heatmap_%s.png", day), width=2000, height=1000, res=100)
+png(sprintf("plots/nfsiostat-heatmap_%s.png", day), width=2000, height=1000, res=100)
 
 layout(matrix(1:2, nrow=1), widths=c(8,1))
 
@@ -107,7 +62,7 @@ for(i in 1:length(colGroups)) {
 mtext(
 	side=2, las=1, adj=c(0.5, 0.5), line=3, 
 	at = (1:length(levels(tab$server)) - 1) * (length(colGroups) + 1) + 0.5 + (length(colGroups) + 1) / 2,
-	text = sprintf("%s\n%s", levels(tab$server), hosts[levels(tab$server)])
+	text = levels(tab$server)
 )
 
 # Time axis
