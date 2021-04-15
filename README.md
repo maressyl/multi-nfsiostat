@@ -4,7 +4,7 @@
 
 Each "slave" server runs `nfsiostat` for 10 seconds every minute and send the result to a single "master" server through SSH, in order to plot summaries of NFS performances.
 
-## Setup the master
+## Setting up the master
 
 1. Pull the repository in the desired location.
 2. Edit the `dir_master=` line in `nfsiostat-collect.bash` to define your own location for the metrics store.
@@ -20,7 +20,7 @@ MAILTO=""
 * * * * * ./nfsiostat-collect.bash
 ```
 
-## Setup a slave
+## Setting up a slave
 
 1. Define the hostname of the master server in `$master`
 
@@ -37,6 +37,10 @@ ssh-copy-id $master
 ```
 
 4. Pull the `nfsiostat-collect.bash` script from the master server
+```
+scp $master:$location/nfsiostat-collect.bash .
+```
+
 5. Check the setup via direct execution (the file should appear in the store)
 
 ```bash
@@ -53,6 +57,8 @@ MAILTO=""
 ## Plots
 
 `./nfsiostat-barplot.R [ DATE ]` will produce a barplot summarizing the metrics over all servers for the corresponding day (today if not specified).
+
 `./nfsiostat-heatmap.R [ DATE ]` will produce a heatmap summarizing the metrics over all servers for the corresponding day (today if not specified).
+
 `./nfsiostat-plot.R store/DATE_HOST.txt [ output.png ]`  will produce a barplot summarizing the metrics for a single day and server (file specified).
 
