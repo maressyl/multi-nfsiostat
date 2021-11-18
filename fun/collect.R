@@ -10,7 +10,7 @@ collect <- function() {
 		day <- strftime(Sys.time(), "%Y-%m-%d")
 	}
 	
-	# Loop over files
+	# Loop over nfsiostat files
 	tab <- NULL
 	inputFiles <- dir("store", pattern=sprintf("%s_.*\\.txt$", day), full.names=TRUE)
 	for(inputFile in inputFiles) {
@@ -52,6 +52,25 @@ collect <- function() {
 		}
 	}
 	
-	return(list(tab=tab, day=day))
+	# Loop over df files
+	inputFile <- sprintf("store/%s.txt", day)
+	if(file.exists(inputFile)) {
+		df <- read.table(inputFile, stringsAsFactors=FALSE, col.names=c("time", "filesystem", "blocks.1K", "used", "available", "used.%", "mountpoint"), check.names=FALSE)
+		df$time <- strptime(paste(day, df$time, sep="T"), format="%Y-%m-%dT%H:%M:%S")
+	} else {
+		df <- data.frame(
+			"time"       = as.POSIXct(integer(0), origin="1970-01-01"),
+			"filesystem" = character(0),
+			"blocks.1K"  = numeric(0),
+			"used"       = numeric(0),
+			"available"  = numeric(0),
+			"used.%"     = numeric(0),
+			"mountpoint" = character(0),
+			stringsAsFactors=FALSE,
+			check.names=FALSE
+		)
+	}
+	
+	return(list(tab=tab, day=day, df=df))
 }
 
