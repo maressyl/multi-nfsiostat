@@ -9,7 +9,7 @@ if(length(args) == 1L) {
 	inputFile <- args[1]
 	outputFile <- args[2]
 } else {
-	stop("USAGE : ./nfsiostat.R store/DATE_HOST.txt [ output.png ]")
+	stop("USAGE : ./plot.R store/nfs/DATE_HOST.txt [ output.png ]")
 }
 
 

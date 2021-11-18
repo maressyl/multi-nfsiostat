@@ -12,7 +12,7 @@ collect <- function() {
 	
 	# Loop over nfsiostat files
 	tab <- NULL
-	inputFiles <- dir("store", pattern=sprintf("%s_.*\\.txt$", day), full.names=TRUE)
+	inputFiles <- dir("store/nfs", pattern=sprintf("%s_.*\\.txt$", day), full.names=TRUE)
 	for(inputFile in inputFiles) {
 		# Server IP
 		server <- sub("^.+_(.+)\\.txt$", "\\1", basename(inputFile))
@@ -53,7 +53,7 @@ collect <- function() {
 	}
 	
 	# Loop over df files
-	inputFile <- sprintf("store/%s.txt", day)
+	inputFile <- sprintf("store/df/%s.txt", day)
 	if(file.exists(inputFile)) {
 		df <- read.table(inputFile, stringsAsFactors=FALSE, col.names=c("time", "filesystem", "blocks.1K", "used", "available", "used.%", "mountpoint"), check.names=FALSE)
 		df$time <- strptime(paste(day, df$time, sep="T"), format="%Y-%m-%dT%H:%M:%S")

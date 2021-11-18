@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 
-### USAGE : ./nfsiostat-heatmap.R [ DATE ]
+### USAGE : ./heatmap.R [ DATE ]
 
 source("fun/collect.R")
 out <- collect()
@@ -38,7 +38,7 @@ for(colGroup in colGroups) {
 # Server IP as factor
 tab$server <- factor(tab$server)
 
-png(sprintf("plots/nfsiostat-heatmap_%s.png", day), width=2000, height=1000, res=100)
+png(sprintf("plots/heatmap_%s.png", day), width=2000, height=1000, res=100)
 
 layout(matrix(1:2, nrow=1), widths=c(8,1))
 

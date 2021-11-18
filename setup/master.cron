@@ -1,0 +1,2 @@
+* * * * * multi-nfsiostat/collect.bash df
+1 0 * * * multi-nfsiostat/pull.bash yesterday clean

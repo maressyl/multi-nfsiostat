@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 
-### USAGE : ./nfsiostat-barplot.R [ DATE ]
+### USAGE : ./barplot.R [ DATE ]
 
 source("fun/collect.R")
 out <- collect()
@@ -40,7 +40,7 @@ i <- apply(arr, 2, sum, na.rm=TRUE) > 0L
 pal <- rep("white", length(servers))
 pal[i] <- rainbow(sum(i))
 
-png(sprintf("plots/nfsiostat-barplot_%s.png", day), width=2000, height=1000, res=100)
+png(sprintf("plots/barplot_%s.png", day), width=2000, height=1000, res=100)
 
 # Layout
 par(mar=c(2,7,1,1))
@@ -75,7 +75,7 @@ mtext(side=2, text="Available (Tio)", font=2, line=5)
 
 # Axis
 at <- times[i]
-mtext(side=1, line=1, at=at, text=strftime(at, "%H:%M"), cex=0.7)
+if(length(at) > 0L) mtext(side=1, line=1, at=at, text=strftime(at, "%H:%M"), cex=0.7)
 
 # Legend background
 par(mar=c(0,0,0,0), cex=1)
