@@ -6,6 +6,7 @@ source("fun/collect.R")
 out <- collect()
 tab <- out$tab
 day <- out$day
+df <- out$df
 
 # All servers
 servers <- sort(unique(tab$server))
@@ -43,7 +44,7 @@ png(sprintf("plots/nfsiostat-barplot_%s.png", day), width=2000, height=1000, res
 
 # Layout
 par(mar=c(2,7,1,1))
-layout(matrix(c(1:4,5,5,5,5), ncol=2), widths=c(7,1))
+layout(matrix(c(1:5,rep(6, 5)), ncol=2), widths=c(7,1))
 
 for(column in columns) {
 	# Matrix to plot
@@ -61,6 +62,20 @@ for(column in columns) {
 	# Title
 	mtext(side=2, text=sub("ms", "s", sub("kB", "MB", column)), font=2, line=5)
 }
+
+# df
+y <- df$available*1000/(1024^4)
+if(nrow(df) > 0L) { ylim <- range(y)
+} else            { ylim <- 0:1
+}
+plot(x=df$time, y=y, xlim=range(times), ylim=ylim, type="h", ylab="", las=1, bty="n", xaxt="n")
+
+# Title
+mtext(side=2, text="Available (Tio)", font=2, line=5)
+
+# Axis
+at <- times[i]
+mtext(side=1, line=1, at=at, text=strftime(at, "%H:%M"), cex=0.7)
 
 # Legend background
 par(mar=c(0,0,0,0), cex=1)
