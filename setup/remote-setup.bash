@@ -35,9 +35,10 @@ else
    git clone "$pullFrom"
 fi
 
+cd ~/"$pullTo"
+
 # Update target
 echo "$target" > setup/target.txt
 
 # Install crontab
-cd ~/"$pullTo"
 crontab setup/slave.cron
