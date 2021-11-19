@@ -14,6 +14,7 @@ if [ "$clean" == "clean" ]; then option="--remove-source-files"; else option="";
 
 # Script location
 script="$(dirname "$0")"
+cd "$script"
 
 # Deployed location
 pullFrom="$(git remote get-url origin)"
@@ -24,5 +25,5 @@ while read host
 do
    echo $host
    day=$(date -d "$when" -I"date")
-   rsync -z $option "$host:${pullTo}/store/nfs/${day}.txt" "${script}/store/nfs/${day}_${host}.txt"
+   rsync -z $option "$host:${pullTo}/store/nfs/${day}.txt" "store/nfs/${day}_${host}.txt"
 done < setup/hosts.txt
